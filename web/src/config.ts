@@ -28,3 +28,12 @@ export const DB = {
 	HOSTNAME: "127.0.0.1",
 	DATABASE: env_production ? "raspberry" : "raspberry_test"
 };
+
+// TTY相关
+export const TTY = {
+	SCAN_INTERVAL: 2*1000,
+	MAX_CONNECT_TIME: 30*1000,
+	SHELL: 'fish',
+	SHELL_COLS: 80,
+	SHELL_ROWS: 24
+}

@@ -1,7 +1,6 @@
 
 import { Log, SERVER } from './config';
-import { app } from './server';
-import { io } from './socket';
+import { app, io } from './server';
 
 async function startup() {
 	SERVER.net.on('request', app.callback());

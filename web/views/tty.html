@@ -1,5 +1,19 @@
 {% extends 'layout.html' %}
 
+{% block head %}
+<link rel="stylesheet" href="static/tty/xterm.css" />
+<link rel="stylesheet" href="static/tty/addons/fullscreen/fullscreen.css" />
+<link rel="stylesheet" href="static/tty/style.css" />
+<script src="static/tty/xterm.js" ></script>
+<script src="static/tty/myattach.js" ></script>
+<script src="static/tty/addons/fit/fit.js" ></script>
+<script src="static/tty/addons/fullscreen/fullscreen.js" ></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="static/tty/tty.js"></script>
+{% endblock %}
+
 {% block content %}
-<h1>终端</h1>
+<div style="width: 100%" class="text-center">
+    <div id="terminal-container"></div>
+</div>
 {% endblock %}

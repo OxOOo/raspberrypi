@@ -1,7 +1,3 @@
-/*
- * 这个文件写http响应
- */
-
 require('colors');
 import * as colors from 'colors';
 import * as Koa from 'koa';
@@ -10,15 +6,18 @@ import * as mount from 'koa-mount';
 import * as serve from 'koa-static';
 import * as bodyParser from 'koa-bodyparser';
 import * as session from 'koa-session-minimal';
+import * as socket_io from 'socket.io';
 import mzfs = require('mz/fs');
 import flash = require('./middlewares/flash');
 import path = require('path');
 import stream = require('stream');
 import { SERVER, Log, env_production } from './config';
+import tty = require('./modules/tty');
 let render = require('koa-swig');
 let body = require('koa-convert')(require('koa-better-body')());
 
 export const app = new Koa();
+export const io = socket_io();
 const router = new Router();
 
 app.keys = SERVER.cookie_keys;
@@ -92,6 +91,7 @@ router.get('/index', async (ctx, next) => {
 router.get('/tty', async (ctx, next) => {
 	await (<any>ctx).render('tty', { tab: 'tty' });
 });
+tty.setup(app, router, io);
 
 // 主路由
 
