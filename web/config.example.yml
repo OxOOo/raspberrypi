@@ -1,0 +1,26 @@
+default: &default
+    server_port: 8000
+    server_address: 127.0.0.1
+    server_cookie_keys:
+        - raspberry
+    mongodb_hostname: 127.0.0.1
+    # mongodb_database: database
+    tty_scan_interval: 2000
+    tty_max_time: 30000
+    tty_shell: fish
+    tty_cols: 80
+    tty_rows: 24
+    auth_name: root
+    auth_pass: root
+
+development:
+    <<: *default
+    mongodb_database: raspberry
+
+test:
+    <<: *default
+    mongodb_database: raspberry_test
+
+production:
+    <<: *default
+    mongodb_database: raspberry

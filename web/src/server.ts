@@ -11,7 +11,7 @@ import mzfs = require('mz/fs');
 import flash = require('./middlewares/flash');
 import path = require('path');
 import stream = require('stream');
-import { SERVER, Log, env_production } from './config';
+import { SERVER, Log, env_production, AUTH } from './config';
 import tty = require('./modules/tty');
 let render = require('koa-swig');
 let body = require('koa-convert')(require('koa-better-body')());
@@ -76,7 +76,7 @@ app.use(async (ctx, next) => {
 		} else throw err;
 	}
 })
-app.use(require('koa-basic-auth')({ name: 'pi', pass: 'raspberry' }));
+app.use(require('koa-basic-auth')({ name: AUTH.name, pass: AUTH.pass }));
 router.use(flash);
 
 // 中间件

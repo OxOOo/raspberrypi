@@ -29,6 +29,7 @@
     "@types/socket.io": "^1.4.27",
     "co": "^4.6.0",
     "colors": "^1.1.2",
+    "js-yaml": "^3.7.0",
     "koa": "^2.0.0-alpha.7",
     "koa-basic-auth": "^2.0.0",
     "koa-better-body": "^3.0.2",
