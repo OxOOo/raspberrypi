@@ -29,6 +29,10 @@
 					<ul class="nav navbar-nav">
 						<li {% if tab == 'tty' %} class="active" {% endif %}><a href="tty"> 终端 </a></li>
 					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="poweroff" onclick="return confirm('确定关机?')">关机</a></li>
+						<li><a href="restart" onclick="return confirm('确定重启?')">重启</a></li>
+					</ul>
 				</div> <!--/.nav-collapse -->
 			</div> <!--/.container -->
 		</nav>

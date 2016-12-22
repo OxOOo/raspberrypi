@@ -13,6 +13,7 @@ import path = require('path');
 import stream = require('stream');
 import { SERVER, Log, env_production, AUTH } from './config';
 import tty = require('./modules/tty');
+import script = require('./script');
 let render = require('koa-swig');
 let body = require('koa-convert')(require('koa-better-body')());
 
@@ -92,6 +93,19 @@ router.get('/tty', async (ctx, next) => {
 	await (<any>ctx).render('tty', { tab: 'tty' });
 });
 tty.setup(app, router, io);
+
+// 关机
+router.get('/poweroff', async (ctx, next) => {
+	await script.poweroff();
+	ctx.state.flash.success = '正在关机';
+	ctx.redirect('/');
+});
+// 重启
+router.get('/restart', async (ctx, next) => {
+	await script.restart();
+	ctx.state.flash.success = '正在重启';
+	ctx.redirect('/');
+});
 
 // 主路由
 
