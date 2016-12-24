@@ -14,7 +14,7 @@
   "dependencies": {
     "@types/cheerio": "^0.17.31",
     "@types/colors": "^0.6.33",
-    "@types/koa": "^2.0.35",
+    "@types/koa": "^2.0.36",
     "@types/koa-bodyparser": "^3.0.20",
     "@types/koa-mount": "^2.0.18",
     "@types/koa-router": "^7.0.21",
