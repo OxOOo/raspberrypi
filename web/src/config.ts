@@ -49,3 +49,9 @@ export const TTY = {
 	SHELL_COLS: <number>cfg['tty_cols'],
 	SHELL_ROWS: <number>cfg['tty_rows'],
 }
+
+export const DOWNLOAD = {
+	A9_NAME: <string>cfg['accounts9_name'],
+	A9_PASS: <string>cfg['accounts9_pass'],
+	PATH: <string>cfg['download_path']
+}

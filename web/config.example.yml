@@ -12,6 +12,9 @@ default: &default
     tty_rows: 24
     auth_name: root
     auth_pass: root
+    accounts9_name: accounts9_name
+    accounts9_pass: accounts9_pass
+    download_path: /path/to/download
 
 development:
     <<: *default

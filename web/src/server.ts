@@ -7,12 +7,14 @@ import * as serve from 'koa-static';
 import * as bodyParser from 'koa-bodyparser';
 import * as session from 'koa-session-minimal';
 import * as socket_io from 'socket.io';
+import * as rp from 'request-promise';
 import mzfs = require('mz/fs');
 import flash = require('./middlewares/flash');
 import path = require('path');
 import stream = require('stream');
 import { SERVER, Log, env_production, AUTH } from './config';
 import tty = require('./modules/tty');
+import download = require('./modules/download');
 import script = require('./script');
 let render = require('koa-swig');
 let body = require('koa-convert')(require('koa-better-body')());
@@ -88,6 +90,8 @@ router.redirect('/', '/index');
 router.get('/index', async (ctx, next) => {
 	await (<any>ctx).render('index', { tab: 'index' });
 });
+
+download.setup(app, router, io);
 
 router.get('/tty', async (ctx, next) => {
 	await (<any>ctx).render('tty', { tab: 'tty' });

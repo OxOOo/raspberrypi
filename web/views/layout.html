@@ -27,6 +27,7 @@
 				</div>
 				<div class="navbar-collapse collapse">
 					<ul class="nav navbar-nav">
+						<li {% if tab == 'downloads' %} class="active" {% endif %}><a href="downloads"> 下载 </a></li>
 						<li {% if tab == 'tty' %} class="active" {% endif %}><a href="tty"> 终端 </a></li>
 					</ul>
 					<ul class="nav navbar-nav navbar-right">

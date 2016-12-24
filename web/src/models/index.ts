@@ -14,3 +14,6 @@ mongoose.connect(db, {
 	}
 });
 
+import download = require('./download');
+export type IDownload = download.IDownload;
+export let Download = download.Download;
