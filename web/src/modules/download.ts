@@ -93,8 +93,8 @@ class D {
     private async getCapacity() {
         let html = await this.request.get('https://download.net9.org/');
         let $ = cheerio.load(html)('ul.navbar-right a').last();
-        let d1 = / (\d+)\/(\d+) /.exec($.text());
-        let d2 = / (\d+)\/(\d+)MB/.exec($.text());
+        let d1 = / (-?\d+)\/(-?\d+) /.exec($.text());
+        let d2 = / (-?\d+)\/(-?\d+)MB/.exec($.text());
         return {
             tasks_now: Number(d1[1]),
             tasks_max: Number(d1[2]),
