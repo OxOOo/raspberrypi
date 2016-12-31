@@ -11,7 +11,7 @@ import cheerio = require('cheerio');
 import path = require('path');
 import url = require('url');
 import qs = require('querystring');
-import { DOWNLOAD } from '../config';
+import { DOWNLOAD, Log } from '../config';
 import { IDownload, Download } from '../models';
 
 const utils = require('utility');
@@ -26,6 +26,17 @@ class D {
     }
 
     async start() {
+        Log.info('start download:', this.download.origin_url);
+        try {
+            await this.download9();
+        } catch(err) {
+            this.download.error_info = err.message;
+            this.download.status = '下载失败';
+            await this.download.save();
+        }
+    }
+
+    async download9() {
         this.download.status = '正在登录download9';
         await this.download.save();
         for(let times=0; times<5; times ++) {
@@ -218,6 +229,14 @@ class D {
 }
 
 export function setup(app: Koa, router: Router, io: SocketIO.Server) {
+    (async () => {
+        let tasks = await Download.find({finished: false});
+        for(let i = 0; i < tasks.length; i ++) {
+            let d = new D(tasks[i]);
+            d.start();
+        }
+    })();
+
     router.get('/downloads', async (ctx, next) => {
         let downloads = await Download.find().sort({'date': -1});
         await (<any>ctx).render('downloads', { tab: 'downloads', downloads: downloads });

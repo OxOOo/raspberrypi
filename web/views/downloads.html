@@ -61,7 +61,13 @@
                 <td>{{ d.size }}</td>
                 <td>{{ d.progress }}</td>
                 <td>{{ d.speed }}</td>
-                <td><a href="/downloads/static/{{ d.sid }}/{{ d.local_file }}">下载</a></td>
+                <td>
+                    {% if d.finished %}
+                        <a href="/downloads/static/{{ d.sid }}/{{ d.local_file }}">下载</a>
+                    {% else %}
+                        下载未完成
+                    {% endif %}
+                </td>
                 <td><a href="#">删除</a></td>
                 <td><a href="{{ d.origin_url }}">原始链接</a></td>
 
