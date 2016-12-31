@@ -96,10 +96,10 @@ class D {
         let d1 = / (-?\d+)\/(-?\d+) /.exec($.text());
         let d2 = / (-?\d+)\/(-?\d+)MB/.exec($.text());
         return {
-            tasks_now: Number(d1[1]),
-            tasks_max: Number(d1[2]),
-            capacity_now: Number(d2[1]),
-            capacity_max: Number(d2[2])
+            tasks_now: Math.max(0, Number(d1[1])),
+            tasks_max: Math.max(0, Number(d1[2])),
+            capacity_now: Math.max(0, Number(d2[1])),
+            capacity_max: Math.max(0, Number(d2[2]))
         }
     }
 
@@ -195,9 +195,12 @@ class D {
             await this.download.save();
             progress(rq('https://download.net9.org' + info.file))
                 .on('progress', async (state: any) => {
-                    this.download.progress = (state.percent*100).toFixed(1) + '%';
-                    this.download.speed = (state.speed/1024/1024).toFixed(2) + ' MB/s';
-                    this.download.remaining = state.time.remaining.toFixed(1) + ' s';
+                    this.download.progress = 'x%';
+                    this.download.speed = 'x MB/s';
+                    this.download.remaining = 'x s';
+                    if (state.percent) this.download.progress = (state.percent*100).toFixed(1) + '%';
+                    if (state.speed) this.download.speed = (state.speed/1024/1024).toFixed(2) + ' MB/s';
+                    if (state.time && state.time.remaining) this.download.remaining = state.time.remaining.toFixed(1) + ' s';
                     await this.download.save();
                 })
                 .on('error', (err: any) => {
