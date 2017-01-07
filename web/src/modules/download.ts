@@ -160,10 +160,9 @@ class D {
 
     private async waitForDownloadOK() {
         let solve = async () => {
-            this.download.status = 'download9正在下载';
-            await this.download.save();
             let info = await this.flushStatus();
             if (info) {
+                this.download.status = 'download9正在下载|'+info.status;
                 this.download.size = info.size;
                 this.download.progress = info.rate;
                 this.download.speed = info.speed;
@@ -172,10 +171,12 @@ class D {
                     this.download.status = 'download9下载完成';
                     await this.download.save();
                     return true;
+                } else if (info.status != 'active') {
+                    throw new Error('download9下载失败');
                 }
                 return false;
             } else {
-                throw new Error('不知名原因');
+                throw new Error('获取download9状态失败');
             }
         };
         while(true) {
@@ -186,35 +187,40 @@ class D {
 
     private downloadToLocal() {
         return new Promise(async (resolve, reject) => {
-            await this.analysisLocalFilename();
-            let info = await this.flushStatus();
-            await this.download.save();
-            let pathname = path.join(DOWNLOAD.PATH, String(this.download._id));
-            await mzfs.mkdir(pathname);
-            this.download.status = '正在取回';
-            await this.download.save();
-            progress(rq('https://download.net9.org' + info.file))
-                .on('progress', async (state: any) => {
-                    this.download.progress = 'x%';
-                    this.download.speed = 'x MB/s';
-                    this.download.remaining = 'x s';
-                    if (state.percent) this.download.progress = (state.percent*100).toFixed(1) + '%';
-                    if (state.speed) this.download.speed = (state.speed/1024/1024).toFixed(2) + ' MB/s';
-                    if (state.time && state.time.remaining) this.download.remaining = state.time.remaining.toFixed(1) + ' s';
-                    await this.download.save();
-                })
-                .on('error', (err: any) => {
-                    reject(err);
-                })
-                .on('end', async () => {
-                    this.download.progress = '100%';
-                    this.download.speed = '0 MB/s';
-                    this.download.remaining = '0 s';
-                    this.download.finished = true;
-                    this.download.status = '下载完成';
-                    await this.download.save();
-                    resolve();
-                }).pipe(mzfs.createWriteStream(path.join(pathname, this.download.local_file)));
+            try {
+                await this.analysisLocalFilename();
+                let info = await this.flushStatus();
+                await this.download.save();
+                let pathname = path.join(DOWNLOAD.PATH, String(this.download._id));
+                if (!await mzfs.exists(pathname)) await mzfs.mkdir(pathname);
+                if (await mzfs.exists(path.join(pathname, this.download.local_file))) await mzfs.unlink(path.join(pathname, this.download.local_file));
+                this.download.status = '正在取回';
+                await this.download.save();
+                progress(rq('https://download.net9.org' + info.file))
+                    .on('progress', async (state: any) => {
+                        this.download.progress = 'x%';
+                        this.download.speed = 'x MB/s';
+                        this.download.remaining = 'x s';
+                        if (state.percent) this.download.progress = (state.percent*100).toFixed(1) + '%';
+                        if (state.speed) this.download.speed = (state.speed/1024/1024).toFixed(2) + ' MB/s';
+                        if (state.time && state.time.remaining) this.download.remaining = state.time.remaining.toFixed(1) + ' s';
+                        await this.download.save();
+                    })
+                    .on('error', (err: any) => {
+                        reject(err);
+                    })
+                    .on('end', async () => {
+                        this.download.progress = '100%';
+                        this.download.speed = '0 MB/s';
+                        this.download.remaining = '0 s';
+                        this.download.finished = true;
+                        this.download.status = '下载完成';
+                        await this.download.save();
+                        resolve();
+                    }).pipe(mzfs.createWriteStream(path.join(pathname, this.download.local_file)));
+            } catch(err) {
+                reject(err);
+            }
         });
     }
 
