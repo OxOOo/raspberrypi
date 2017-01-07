@@ -171,7 +171,7 @@ class D {
                     this.download.status = 'download9下载完成';
                     await this.download.save();
                     return true;
-                } else if (info.status != 'active') {
+                } else if (info.status && info.status.length && info.status != 'active') {
                     throw new Error('download9下载失败');
                 }
                 return false;
