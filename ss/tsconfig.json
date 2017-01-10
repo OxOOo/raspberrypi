@@ -1,0 +1,14 @@
+// tsconfig.json
+{
+	"compileOnSave": false,
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"declaration": true,
+		"noImplicitThis": true,
+		"noImplicitAny": true,
+		// "noResolve": true,
+		"pretty": true,
+		"noEmitOnError": true
+	}
+}

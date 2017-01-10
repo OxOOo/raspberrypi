@@ -1,0 +1,12 @@
+default: &default
+    ss_email: abc@qq.com
+    ss_passwd: abcdef
+
+development:
+    <<: *default
+
+test:
+    <<: *default
+
+production:
+    <<: *default

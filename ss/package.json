@@ -1,0 +1,36 @@
+{
+  "name": "ss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "gulp tsc && node build/index.js",
+    "build": "gulp tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/log4js": "0.0.32",
+    "@types/mz": "0.0.30",
+    "@types/node": "^6.0.52",
+    "@types/request": "0.0.36",
+    "@types/request-promise": "^4.1.33",
+    "js-yaml": "^3.7.0",
+    "log4js": "^1.0.1",
+    "mz": "^2.6.0",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1",
+    "socket.io": "^1.7.2",
+    "utility": "^1.9.0",
+    "wait-events": "^0.3.2"
+  },
+  "devDependencies": {
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-typescript": "^3.1.3",
+    "merge2": "^1.0.2",
+    "typescript": "^2.2.0-dev.20161217"
+  }
+}
