@@ -2,6 +2,7 @@
 
 {% block content %}
 
+<!-- 普通下载任务 -->
 <div>
     <!-- Button trigger modal -->
     <button type="button" class="btn btn-success" data-toggle="modal" data-target="#add-task">
@@ -53,21 +54,21 @@
     </thead>
     <tbody name="tbody">
         {% for d in downloads %}
-            <tr name="statusTable" {% if d.finished %} class="success" {% endif %}>
+            <tr name="normal" {% if d.finished %} class="success" {% endif %} id="{{d.sid}}">
 
-                <td>{{ d.name }}</td>
-                <td>{{ d.date|date('Y-m-d') }}</td>
-                <td>
+                <td class="name">{{ d.name }}</td>
+                <td class="date">{{ d.date|date('Y-m-d H:i:s') }}</td>
+                <td class="status">
                     {% if d.error_info %}
                         <spin data-toggle="tooltip" title="{{d.error_info}}">{{ d.status }}</spin>
                     {% else %}
                         {{ d.status }}
                     {% endif %}
                 </td>
-                <td>{{ d.size }}</td>
-                <td>{{ d.progress }}</td>
-                <td>{{ d.speed }}</td>
-                <td>
+                <td class="size">{{ d.size }}</td>
+                <td class="progress">{{ d.progress }}</td>
+                <td class="speed">{{ d.speed }}</td>
+                <td class="finished">
                     {% if d.finished %}
                         <a href="/downloads/static/{{ d.sid }}/{{ d.local_file }}">下载</a>
                     {% else %}
@@ -81,4 +82,35 @@
         {% endfor %}
     </tbody>
 </table>
+<script>
+    function installNormal(e) {
+        var sid = e.attr('id');
+        var refresh = function() {
+            $.get('/downloads/info/' + sid, function(rst) {
+                ['name', 'status', 'size', 'progress', 'speed'].forEach(function(key) {
+                    e.find('td.'+key).html(rst[key]);
+                });
+                if (rst.finished) {
+                    e.addClass('success');
+                    e.find('td.finished').html('<a href="/downloads/static/'+rst._id+'/'+rst.local_file+'">下载</a>');
+                } else {
+                    e.removeClass('success');
+                    e.find('td.finished').html('下载未完成');
+                }
+                if (!rst.finished) {
+                    setTimeout(function(){refresh();}, 1000);
+                }
+            });
+        }
+        refresh();
+    }
+    $(function () {
+        $('tr[name="normal"]').each(function() {
+            var e = $(this);
+            installNormal(e);
+        });
+    });
+</script>
+<!-- 普通下载任务 -->
+
 {% endblock %}

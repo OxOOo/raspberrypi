@@ -235,10 +235,15 @@ class D {
 }
 
 let que = async.queue<{},any>(async (task, callback) => {
-    let tasks = await Download.find({deleted: false, finished: false}).sort({date: -1});
-    for(let i = 0; i < tasks.length; i ++) {
-        let d = new D(tasks[i]);
-        await d.start();
+    try {
+        let tasks = await Download.find({deleted: false, finished: false}).sort({date: -1});
+        for(let i = 0; i < tasks.length; i ++) {
+            let d = new D(tasks[i]);
+            await d.start();
+        }
+        callback();
+    } catch(err) {
+        callback(err);
     }
 }, 1);
 
@@ -282,8 +287,14 @@ export function setup(app: Koa, router: Router, io: SocketIO.Server) {
         ctx.assert(task, '下载不存在');
         task.deleted = true;
         await task.save();
-        ctx.state.flash.success = '删除成功，将在下一次启动的时候对磁盘进行正真删除。';
+        ctx.state.flash.success = '删除成功，将在下一次启动的时候对磁盘进行实际上的删除。';
         ctx.redirect('/downloads');
     });
+    router.get('/downloads/info/:sid', async (ctx, next) => {
+        let task = await Download.findById(ctx.params.sid);
+        ctx.assert(task, '下载不存在');
+        ctx.body = task.toObject();
+    });
+
     app.use(mount('/downloads/static/', serve(DOWNLOAD.PATH)));
 }
