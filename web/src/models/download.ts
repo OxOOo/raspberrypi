@@ -17,6 +17,7 @@ let downloadSchema: Schema = new Schema({
 	remaining: String,
 	error_info: String,
 	finished: {type: Boolean, default: false},
+	deleted: {type: Boolean, default: false},
 });
 
 export interface IDownload extends Document {
@@ -32,6 +33,7 @@ export interface IDownload extends Document {
 	remaining: string,
 	error_info: string,
 	finished: boolean,
+	deleted: boolean
 }
 
 var sid = downloadSchema.virtual('sid');

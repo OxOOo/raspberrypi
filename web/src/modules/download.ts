@@ -11,15 +11,22 @@ import cheerio = require('cheerio');
 import path = require('path');
 import url = require('url');
 import qs = require('querystring');
+import async = require('async');
+import del = require('del');
 import { DOWNLOAD, Log } from '../config';
 import { IDownload, Download } from '../models';
 
 const utils = require('utility');
 const progress = require('request-progress');
 
+function sleep(ms: number) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 class D {
     request = rp.defaults({jar: rq.jar()});
-    logined = false;
 
     constructor(private download: IDownload) {
         this.download.download9_name = utils.randomString(12, '1234567890');
@@ -28,27 +35,24 @@ class D {
     async start() {
         Log.info('start download:', this.download.origin_url);
         try {
+            // init db
+            this.download.error_info = '';
+            this.download.finished = false;
+            await this.download.save();
             await this.download9();
         } catch(err) {
             this.download.error_info = err.message;
             this.download.status = '下载失败';
+            Log.error(err.message);
             await this.download.save();
         }
+        Log.info('end download:', this.download.origin_url);
     }
 
     async download9() {
         this.download.status = '正在登录download9';
         await this.download.save();
-        for(let times=0; times<5; times ++) {
-            try {
-                if (await this.loginDownload9()) break;
-            } catch(err) {
-            }
-        }
-        if (!this.logined) {
-            // login fail FIXME
-            return;
-        }
+        await this.loginDownload9();
 
         this.download.status = '正在删除不必要的文件';
         await this.download.save();
@@ -58,19 +62,15 @@ class D {
             if (c.capacity_now >= c.capacity_max || c.tasks_now >= c.tasks_max)
             {
                 if (!await this.deleteRemoteLastFile()) {
-                    // download fail FIXME
-                    return false;
+                    throw new Error('删除远程文件失败');
                 }
             } else break;
         }
+
         this.download.status = '正在添加任务';
         await this.download.save();
-        let content = await this.addRemoteTask(this.download.origin_url);
-        if (content != 'success') {
-            this.download.error_info = content;
-            await this.download.save();
-            return false;
-        }
+        await this.addRemoteTask(this.download.origin_url);
+
         await this.waitForDownloadOK();
         await this.downloadToLocal();
     }
@@ -86,8 +86,9 @@ class D {
         data['username'] = DOWNLOAD.A9_NAME;
         data['password'] = DOWNLOAD.A9_PASS;
         let rst: string = await this.request.post({url: 'https://accounts.net9.org/login?'+qs.stringify({'returnto': data['returnto']}), form: data, followAllRedirects: true});
-        this.logined = rst.indexOf('Download9') != -1;
-        return this.logined;
+        if (rst.indexOf('Download9') == -1) {
+            throw new Error('download9登录失败');
+        }
     }
 
     private async getCapacity() {
@@ -117,7 +118,7 @@ class D {
         return false;
     }
 
-    private async addRemoteTask(url: string): Promise<string> {
+    private async addRemoteTask(url: string) {
         let html = await this.request.get('https://download.net9.org/');
         let $ = cheerio.load(html)('#newbyurlform');
         let data: {[index:string]:string} = {};
@@ -130,7 +131,9 @@ class D {
         data['name'] = this.download.download9_name;
         data['url'] = url;
         let rst = JSON.parse(await this.request.post({url: 'https://download.net9.org/new2/', form: data}));
-        return rst.content;
+        if (rst.content != 'success') {
+            throw new Error('添加远程任务失败：' + rst.content);
+        }
     }
 
     private async flushStatus() {
@@ -150,12 +153,6 @@ class D {
             }
             if (this.download.download9_name == info.name) return info;
         }
-    }
-
-    private sleep(ms: number) {
-        return new Promise((resolve, reject) => {
-            setTimeout(resolve, ms);
-        });
     }
 
     private async waitForDownloadOK() {
@@ -181,12 +178,12 @@ class D {
         };
         while(true) {
             if (await solve()) break;
-            await this.sleep(500);
+            await sleep(500);
         }
     }
 
     private downloadToLocal() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             try {
                 await this.analysisLocalFilename();
                 let info = await this.flushStatus();
@@ -237,25 +234,55 @@ class D {
     }
 }
 
+let que = async.queue<{},any>(async (task, callback) => {
+    let tasks = await Download.find({deleted: false, finished: false}).sort({date: -1});
+    for(let i = 0; i < tasks.length; i ++) {
+        let d = new D(tasks[i]);
+        await d.start();
+    }
+}, 1);
+
+let gerror: string = null;
+
+function wakeup() {
+    que.push({});
+}
+
+async function rubbish() {
+    let tasks = await Download.find({deleted: true});
+    for(let i = 0; i < tasks.length; i ++) {
+        await del(path.join(DOWNLOAD.PATH, String(tasks[i]._id)), {force: true});
+        await tasks[i].remove();
+    }
+}
+
+
 export function setup(app: Koa, router: Router, io: SocketIO.Server) {
     (async () => {
-        let tasks = await Download.find({finished: false});
-        for(let i = 0; i < tasks.length; i ++) {
-            let d = new D(tasks[i]);
-            d.start();
-        }
+        await rubbish();
+        wakeup();
     })();
 
     router.get('/downloads', async (ctx, next) => {
-        let downloads = await Download.find().sort({'date': -1});
+        if (gerror) ctx.state.flash.error = gerror;
+        let downloads = await Download.find({deleted: false}).sort({date: -1});
         await (<any>ctx).render('downloads', { tab: 'downloads', downloads: downloads });
     });
     router.post('/downloads', async (ctx, next) => {
         let task = new Download();
         task.name = ctx.request.body.name;
         task.origin_url = ctx.request.body.link;
-        let d = new D(task);
-        d.start();
+        task.status = '等待中。。。';
+        await task.save();
+        wakeup();
+        ctx.redirect('/downloads');
+    });
+    router.get('/downloads/delete/:sid', async (ctx, next) => {
+        let task = await Download.findById(ctx.params.sid);
+        ctx.assert(task, '下载不存在');
+        task.deleted = true;
+        await task.save();
+        ctx.state.flash.success = '删除成功，将在下一次启动的时候对磁盘进行正真删除。';
         ctx.redirect('/downloads');
     });
     app.use(mount('/downloads/static/', serve(DOWNLOAD.PATH)));
