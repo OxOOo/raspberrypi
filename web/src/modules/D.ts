@@ -34,9 +34,14 @@ export class D {
         Log.info('start download:', this.download.origin_url);
         try {
             // init db
+            this.download.status = '开始下载';
+            this.download.progress = '0%';
+            this.download.speed = '0 MB/s';
+            this.download.remaining = '未知';
             this.download.error_info = '';
             this.download.finished = false;
             await this.download.save();
+
             await this.download9();
         } catch(err) {
             this.download.error_info = err.message;

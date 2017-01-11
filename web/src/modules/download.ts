@@ -14,6 +14,7 @@ import { D } from './D';
 import P = require('./P');
 
 const body = require('koa-convert')(require('koa-better-body')({fields: 'body'}));
+const sendfile = require('koa-sendfile');
 
 function sleep(ms: number) {
     return new Promise((resolve, reject) => {
@@ -21,35 +22,25 @@ function sleep(ms: number) {
     });
 }
 
-let wakeup_que = async.queue<{},any>(async (task, callback) => {
-    try {
-        Log.info('WAKEUP');
-        let tasks = await Download.find({type: 'normal', deleted: false, finished: false}).sort({date: -1});
-        for(let i = 0; i < tasks.length; i ++) {
-            let d = new D(tasks[i]);
-            await d.start();
-        }
-        callback();
-    } catch(err) {
-        callback(err);
+async function wakeupIn() {
+    Log.info('WAKEUP');
+    let tasks = await Download.find({type: 'normal', deleted: false, finished: false}).sort({date: -1});
+    for(let i = 0; i < tasks.length; i ++) {
+        let d = new D(tasks[i]);
+        await d.start();
     }
-}, 1);
-
-// 唤醒
-function wakeup() {
-    wakeup_que.push({});
 }
 
-let autoupdate_que = async.queue<{},any>(async (task, callback) => {
-    try {
-        Log.info('AUTOUPDATE');
-        console.log('===========AUTO=============');
-        let tasks = await Download.find({type: 'autoupdate', deleted: false});
-        for(let i = 0; i < tasks.length; i ++) {
-            let t = tasks[i];
+async function autoupdateIn() {
+    Log.info('AUTOUPDATE');
+    let tasks = await Download.find({type: 'autoupdate', deleted: false});
+    for(let i = 0; i < tasks.length; i ++) {
+        let t = tasks[i];
+        try {
             let info = JSON.parse(await P.runPython(path.join(DOWNLOAD.PATH, String(t._id), 'script.py')));
             if (info.status == 'success') {
                 if (info.version != t.version || !t.finished || (t.error_info && t.error_info.length)) {
+                    t.date = new Date();
                     t.version = info.version;
                     t.origin_url = info.link;
                     await t.save();
@@ -64,6 +55,20 @@ let autoupdate_que = async.queue<{},any>(async (task, callback) => {
                 t.status = '脚本返回信息不合规范';
                 await t.save();
             }
+        } catch(err) {
+            t.error_info = err.message;
+            t.status = '运行脚本失败';
+            await t.save();
+        }
+    }
+}
+
+let que = async.queue<'normal' | 'autoupdate',any>(async (task, callback) => {
+    try {
+        if (task == 'normal') {
+            await wakeupIn();
+        } else if (task == 'autoupdate') {
+            await autoupdateIn();
         }
         callback();
     } catch(err) {
@@ -71,9 +76,14 @@ let autoupdate_que = async.queue<{},any>(async (task, callback) => {
     }
 }, 1);
 
+// 唤醒
+function wakeup() {
+    que.push('normal');
+}
+
 // 自动更新
 function autoupdate() {
-    autoupdate_que.push({});
+    que.push('autoupdate');
 }
 
 // 处理已经删除的数据
@@ -94,8 +104,9 @@ export function setup(app: Koa, router: Router, io: SocketIO.Server) {
             gerror = err.message;
         }
         wakeup();
+        autoupdate();
         while(1) {
-            if (autoupdate_que.idle())autoupdate();
+            if (que.idle())autoupdate();
             await sleep(30*60*1000); // 30mins
         }
     })();
@@ -143,6 +154,12 @@ export function setup(app: Koa, router: Router, io: SocketIO.Server) {
         let task = await Download.findById(ctx.params.sid);
         ctx.assert(task, '下载不存在');
         ctx.body = task.toObject();
+    });
+    router.get('/downloads/:sid/script.py', async (ctx, next) => {
+        const script = 'script.py';
+        let task = await Download.findById(ctx.params.sid);
+        ctx.assert(task, '下载不存在');
+        await sendfile(ctx, path.join(DOWNLOAD.PATH, String(task._id), script));
     });
 
     app.use(mount('/downloads/static/', serve(DOWNLOAD.PATH)));

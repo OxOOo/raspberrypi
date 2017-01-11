@@ -157,14 +157,14 @@
     <thead>
         <tr>
             <th>任务名</th>
-            <th>添加时间</th>
+            <th>版本号</th>
+            <th>更新时间</th>
             <th>任务状态</th>
             <th>文件大小</th>
             <th>任务进度</th>
-            <th>实时速度</th>
             <th>取回本地</th>
             <th>删除</th>
-            <th>原始链接</th>
+            <th>脚本</th>
         </tr>
     </thead>
     <tbody name="tbody">
@@ -172,6 +172,7 @@
             <tr name="autoupdate" {% if d.finished %} class="success" {% endif %} id="{{d.sid}}">
 
                 <td class="name">{{ d.name }}</td>
+                <td class="version">{{ d.version }}</td>
                 <td class="date">{{ d.date|date('Y-m-d H:i:s') }}</td>
                 <td class="status">
                     {% if d.error_info %}
@@ -182,7 +183,6 @@
                 </td>
                 <td class="size">{{ d.size }}</td>
                 <td class="progress">{{ d.progress }}</td>
-                <td class="speed">{{ d.speed }}</td>
                 <td class="finished">
                     {% if d.finished %}
                         <a href="/downloads/static/{{ d.sid }}/{{ d.local_file }}">下载</a>
@@ -191,18 +191,18 @@
                     {% endif %}
                 </td>
                 <td><a href="/downloads/delete/{{ d.sid }}"  onclick="if(confirm('确定删除?')==false)return false;">删除</a></td>
-                <td><a href="{{ d.origin_url }}">原始链接</a></td>
+                <td><a href="/downloads/{{ d.sid }}/script.py">脚本</a></td>
 
             </tr>
         {% endfor %}
     </tbody>
 </table>
 <script>
-    function installNormal(e) {
+    function installAutoupdate(e) {
         var sid = e.attr('id');
         var refresh = function() {
             $.get('/downloads/info/' + sid, function(rst) {
-                ['name', 'status', 'size', 'progress', 'speed'].forEach(function(key) {
+                ['name', 'version', 'status', 'size', 'progress'].forEach(function(key) {
                     e.find('td.'+key).html(rst[key]);
                 });
                 if (rst.finished) {
@@ -222,7 +222,7 @@
     $(function () {
         $('tr[name="autoupdate"]').each(function() {
             var e = $(this);
-            installNormal(e);
+            installAutoupdate(e);
         });
     });
 </script>
