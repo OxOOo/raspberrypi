@@ -173,7 +173,7 @@
 
                 <td class="name">{{ d.name }}</td>
                 <td class="version">{{ d.version }}</td>
-                <td class="date">{{ d.date|date('Y-m-d H:i:s') }}</td>
+                <td class="date">{{ d.date|ldate }}</td>
                 <td class="status">
                     {% if d.error_info %}
                         <spin data-toggle="tooltip" title="{{d.error_info}}">{{ d.status }}</spin>

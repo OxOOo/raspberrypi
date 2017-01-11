@@ -18,6 +18,7 @@ import download = require('./modules/download');
 import script = require('./script');
 let render = require('koa-swig');
 let body = require('koa-convert')(require('koa-better-body')());
+let utils = require('utility');
 
 export const app = new Koa();
 export const io = socket_io();
@@ -28,6 +29,10 @@ app.use(require('koa-logger')());
 app.use(session());
 app.use(bodyParser());
 
+render.setFilter('ldate', function(input: any) {
+	let date = new Date(input);
+	return utils.YYYYMMDDHHmmss(date);
+});
 (<any>app.context).render = require('co').wrap(render({
 	root: path.join(__dirname, '..', 'views'),
 	cache: env_production ? 'memory' : false, // disable, set to false
