@@ -7,6 +7,8 @@ import { Document, Schema, Model, model } from 'mongoose';
 let downloadSchema: Schema = new Schema({
 	name: String,
 	date: { type: Date, default: Date.now },
+	type: { type: String, required: true},
+	version: String,
 	status: String,
 	size: String,
 	progress: String,
@@ -23,6 +25,8 @@ let downloadSchema: Schema = new Schema({
 export interface IDownload extends Document {
 	name: string,
 	date: Date,
+	type: 'normal' | 'autoupdate'
+	version: string,
 	status: string,
 	size: string,
 	progress: string,
