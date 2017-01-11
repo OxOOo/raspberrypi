@@ -29,7 +29,7 @@ app.use(require('koa-logger')());
 app.use(session());
 app.use(bodyParser());
 
-render.setFilter('ldate', function(input: any) {
+render.swig.setFilter('ldate', function(input: any) {
 	let date = new Date(input);
 	return utils.YYYYMMDDHHmmss(date);
 });
