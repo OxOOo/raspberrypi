@@ -2,3 +2,4 @@ node_modules
 download
 npm-debug.log
 .vscode
+config.yml
