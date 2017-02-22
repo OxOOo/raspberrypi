@@ -38,20 +38,24 @@ async function nextCheckinSleep() {
 async function main() {
 	Log.info('started');
 
-	try {
-		for(let i = 0; i < 3; i ++) {
-			await process();
-			await sleep(1000*3);
+	while(true)
+	{
+		try {
+			for(let i = 0; i < 3; i ++) {
+				await process();
+				await sleep(1000*3);
+			}
+			while(true) {
+				let ms = await nextCheckinSleep();
+				Log.info('等待时间：', (ms/1000/60/60).toFixed(2), '小时');
+				await sleep(ms);
+				await process();
+			}
+		} catch(err) {
+			if (err.ret) Log.error(err);
+			else Log.error(err.message);
+			await sleep(1000);
 		}
-		while(1) {
-			let ms = await nextCheckinSleep();
-			Log.info('等待时间：', (ms/1000/60/60).toFixed(2), '小时');
-			await sleep(ms);
-			await process();
-		}
-	} catch(err) {
-		if (err.ret) Log.error(err);
-		else Log.error(err.message);
 	}
 }
 
