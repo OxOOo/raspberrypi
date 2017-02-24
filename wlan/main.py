@@ -56,6 +56,8 @@ def registerIP(ip):
         page = browser.submit()
         if '上线请求已发送' in page.read().decode('gb2312'):
             alog.info('上线请求已发送')
+    else:
+        alog.info('已经上线，不发送上线请求')
 
 def main():
     while True:
