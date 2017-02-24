@@ -41,7 +41,7 @@ def registerIP(ip):
     page = browser.open('http://usereg.tsinghua.edu.cn/do.php', urlencode({'user_login_name': USEREGNAME, 'user_password': m2.hexdigest(), 'action': 'login'}))
     res = page.read().decode('gb2312')
     alog.info('登录usereg的返回结果：%s' % (res))
-    assert res.strip() == 'ok1'
+    assert res.strip() == 'ok'
 
     page = browser.open('http://usereg.tsinghua.edu.cn/online_user_ipv4.php')
     soup = BeautifulSoup(page.read().decode('gb2312'), 'html.parser')
