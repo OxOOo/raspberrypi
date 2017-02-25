@@ -12,7 +12,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 config = strictyaml.load(open('config.yml').read())
-WIRELESS = config['wireless']
+NETWORK = config['network']
 USEREGNAME = config['useregname']
 USEREGPASS = config['useregpass']
 
@@ -21,16 +21,16 @@ def checkIP(ip):
     return 127 < n and n < 192
 
 def getWirelessIP():
-    alog.info('获取无线网卡上的IP地址')
-    addresses = netifaces.ifaddresses(WIRELESS)
+    alog.info('获取网卡上的IP地址')
+    addresses = netifaces.ifaddresses(NETWORK)
     if netifaces.AF_INET in addresses:
         ip = addresses[netifaces.AF_INET][0]['addr'].strip()
-        alog.info('无线网卡IP: %s' % (ip))
+        alog.info('网卡IP: %s' % (ip))
         if not checkIP(ip):
-            alog.info('无线网卡IP(%s)检查失败' % (ip))
+            alog.info('网卡IP(%s)检查失败' % (ip))
             return None
         return ip
-    alog.info('无线网卡没有IP地址')
+    alog.info('网卡没有IP地址')
     return None
 
 def registerIP(ip):
