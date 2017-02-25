@@ -51,7 +51,7 @@ def process():
 def main():
     while True:
         process()
-        time.sleep(10*60) # 10分钟
+        time.sleep(60) # 1分钟
 
 if __name__ == '__main__':
     main()
