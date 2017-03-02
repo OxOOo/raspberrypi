@@ -20,7 +20,7 @@ def checkIP(ip):
     n = int(ip.split('.')[0])
     return n != 0 and n != 10 and n != 127 and n != 192 and n != 255
 
-def getWirelessIP():
+def getNetworkIP():
     alog.info('获取网卡上的IP地址')
     addresses = netifaces.ifaddresses(NETWORK)
     if netifaces.AF_INET in addresses:
@@ -62,7 +62,7 @@ def registerIP(ip):
 def main():
     while True:
         try:
-            ip = getWirelessIP()
+            ip = getNetworkIP()
             if ip:
                 registerIP(ip)
         except Exception as e:

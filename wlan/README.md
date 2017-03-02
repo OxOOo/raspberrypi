@@ -7,3 +7,9 @@
 ```sh
 > sudo pip install netifaces alog strictyaml mechanize bs4
 ```
+
+## 运行
+
+```sh
+> python -u main.py
+```
