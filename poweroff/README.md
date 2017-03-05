@@ -9,5 +9,5 @@
 ## 依赖
 
 ```sh
-> sudo pip install alog
+> sudo pip install alog requests
 ```
