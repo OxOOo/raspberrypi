@@ -34,6 +34,7 @@ def nextTimepoint():
 def main():
     while True:
         try:
+            alog.info('RUNNING')
             nextPoint = nextTimepoint()
             alog.info('时间点(%d):%.2f 小时'%(nextPoint, float(nextPoint)/60/60))
             if nextPoint == 0:
@@ -41,8 +42,8 @@ def main():
                 time.sleep(10)
             time.sleep(nextPoint)
         except Exception as e:
-            print e.message
-            print e
+            alog.error(e.message)
+            sys.stderr.write(e)
             time.sleep(10)
 
 if __name__ == '__main__':
